@@ -3,6 +3,7 @@ Visualising animations
 """
 
 import numpy as np
+import math
 
 def reshape_and_tile_images(array, shape=(28, 28), n_cols=None):
     if n_cols is None:
@@ -39,6 +40,6 @@ def plot_images(images, shape, path, filename, n_rows = 10, color = True):
     #plt.axis('off')
     #plt.tight_layout()
     #plt.savefig(path + filename + ".png", format="png")
-    print "saving image to " + path + filename + ".png"
+    print("saving image to " + path + filename + ".png")
     plt.close()
 
