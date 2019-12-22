@@ -13,7 +13,7 @@ from eval_test_ll import construct_eval_func
 dimZ = 50
 dimH = 500
 n_channel = 128
-batch_size = 50
+# batch_size = 2000
 lr = 1e-4
 K_mc = 10
 checkpoint = -1
@@ -228,4 +228,5 @@ if __name__ == '__main__':
     lbd = 1.0  # some placeholder, doesn't matter
   else:
     lbd = float(sys.argv[3])
+  batch_size = 2000 if method in ['si', 'onlinevi'] else 50
   main(data_name, method, dimZ, dimH, n_channel, batch_size, K_mc, checkpoint, lbd)
