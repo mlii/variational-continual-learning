@@ -19,7 +19,7 @@ K_mc = 10
 checkpoint = -1
 
 
-# data_path = # TODO
+data_path = None # TODO
 
 def main(data_name, method, dimZ, dimH, n_channel, batch_size, K_mc, checkpoint, lbd):
   # set up dataset specific stuff
@@ -220,6 +220,7 @@ def main(data_name, method, dimZ, dimH, n_channel, batch_size, K_mc, checkpoint,
 
 
 if __name__ == '__main__':
+  tf.compat.v1.disable_eager_execution()
   data_name = str(sys.argv[1])
   method = str(sys.argv[2])
   assert method in ['noreg', 'laplace', 'ewc', 'si', 'onlinevi']

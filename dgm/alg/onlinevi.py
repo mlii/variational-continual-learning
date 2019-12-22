@@ -55,7 +55,7 @@ def KL_param(shared_prior_params, task, regularise_headnet=False):
   # then compute kl between prior and q
   kl_total = 0.0
   # for the shared network
-  for l in range(N_layer):
+  for l in range(int(N_layer)):
     suffices = ['W', 'b']
     for suffix in suffices:
       mu_q = shared_q_params['gen_shared_l%d_mu_' % l + suffix + ':0']
@@ -68,7 +68,7 @@ def KL_param(shared_prior_params, task, regularise_headnet=False):
   if regularise_headnet:
     head_q_params = get_headnet_params(task)
     N_layer = len(head_q_params.keys()) / 4  # one layer has for params
-    for l in range(N_layer):
+    for l in range(int(N_layer)):
       for suffix in ['W', 'b']:
         mu_q = shared_q_params['gen_head%d_l%d_mu_' % (task, l) + suffix + ':0']
         log_sig_q = shared_q_params['gen_head%d_l%d_log_sig_' % (task, l) + suffix + ':0']
@@ -127,7 +127,7 @@ def construct_optimizer(X_ph, enc, dec, ll, N_data, batch_size_ph, shared_prior_
       ind_s = np.random.permutation(range(N))
       bound_total = 0.0
       kl_total = 0.0
-      for j in range(0, n_iter_vae):
+      for j in range(0, int(n_iter_vae)):
         indl = j * batch_size
         indr = (j + 1) * batch_size
         ind = ind_s[indl:min(indr, N)]

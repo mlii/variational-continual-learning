@@ -91,7 +91,7 @@ def construct_optimizer(X_ph, batch_size_ph, bound, N_data, ewc_loss):
     for iteration in range(1, n_iter + 1):
       ind_s = np.random.permutation(range(N))
       bound_total = 0.0
-      for j in range(0, n_iter_vae):
+      for j in range(0, int(n_iter_vae)):
         indl = j * batch_size
         indr = (j + 1) * batch_size
         ind = ind_s[indl:min(indr, N)]
