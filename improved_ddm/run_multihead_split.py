@@ -115,9 +115,9 @@ no_epochs = 600         # Number of training epochs per task
 
 
 # No coreset
-tf.reset_default_graph()
+tf.compat.v1.reset_default_graph()
 random_seed = 0
-tf.set_random_seed(random_seed+1)
+tf.compat.v1.set_random_seed(random_seed+1)
 np.random.seed(random_seed)
 
 path = 'model_storage/split/'   # Path where to store files
@@ -131,9 +131,9 @@ np.savez(path + 'test_acc.npz', acc=vcl_result)
 
 
 # Random coreset
-tf.reset_default_graph()
+tf.compat.v1.reset_default_graph()
 random_seed = 0
-tf.set_random_seed(random_seed+1)
+tf.compat.v1.set_random_seed(random_seed+1)
 np.random.seed(random_seed)
 
 path = 'model_storage/split_coreset/'   # Path where to store files

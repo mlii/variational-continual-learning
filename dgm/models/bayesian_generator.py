@@ -8,7 +8,7 @@ A Bayesian MLP generator
 
 
 def sample_gaussian(mu, log_sig):
-  return mu + tf.exp(log_sig) * tf.random_normal(mu.get_shape())
+  return mu + tf.exp(log_sig) * tf.random.normal(mu.get_shape())
 
 
 def bayesian_mlp_layer(d_in, d_out, activation, name):
@@ -93,7 +93,7 @@ def generator(head_net, shared_net):
 def construct_gen(gen, dimZ, sampling=True):
   def gen_data(N):
     # start from sample z_0, generate data
-    z = tf.random_normal(shape=(N, dimZ))
+    z = tf.random.normal(shape=(N, dimZ))
     return gen(z, sampling)
 
   return gen_data

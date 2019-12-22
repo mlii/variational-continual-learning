@@ -14,9 +14,9 @@ batch_size = 100
 num_classes = 10
 epochs = 500
 
-config = tf.ConfigProto()
+config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
-sess = tf.Session(config=config)
+sess = tf.compat.v1.Session(config=config)
 keras.backend.set_session(sess)
 
 # the data, shuffled and split between train and test sets

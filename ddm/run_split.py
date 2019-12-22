@@ -59,7 +59,7 @@ no_epochs = 120
 single_head = False
 
 # Run vanilla VCL
-tf.set_random_seed(12)
+tf.compat.v1.set_random_seed(12)
 np.random.seed(1)
 
 coreset_size = 0
@@ -69,8 +69,8 @@ vcl_result = vcl.run_vcl(hidden_size, no_epochs, data_gen,
 print(vcl_result)
 
 # Run random coreset VCL
-tf.reset_default_graph()
-tf.set_random_seed(12)
+tf.compat.v1.reset_default_graph()
+tf.compat.v1.set_random_seed(12)
 np.random.seed(1)
 
 coreset_size = 40
@@ -80,8 +80,8 @@ rand_vcl_result = vcl.run_vcl(hidden_size, no_epochs, data_gen,
 print(rand_vcl_result)
 
 # Run k-center coreset VCL
-tf.reset_default_graph()
-tf.set_random_seed(12)
+tf.compat.v1.reset_default_graph()
+tf.compat.v1.set_random_seed(12)
 np.random.seed(1)
 
 data_gen = SplitMnistGenerator()

@@ -49,13 +49,13 @@ def main(data_name, method, dimZ, dimH, n_channel, batch_size, K_mc, checkpoint,
 
   # then define model
   n_layers_shared = 2
-  batch_size_ph = tf.placeholder(tf.int32, shape=(), name='batch_size')
+  batch_size_ph = tf.compat.v1.placeholder(tf.int32, shape=(), name='batch_size')
   dec_shared = generator_shared(dimX, dimH, n_layers_shared, 'sigmoid', 'gen')
 
   # initialise sessions
-  config = tf.ConfigProto()
+  config = tf.compat.v1.ConfigProto()
   config.gpu_options.allow_growth = True
-  sess = tf.Session(config=config)
+  sess = tf.compat.v1.Session(config=config)
   string = method
   if method in ['ewc', 'laplace', 'si']:
     string = string + '_lbd%.1f' % lbd
@@ -83,7 +83,7 @@ def main(data_name, method, dimZ, dimH, n_channel, batch_size, K_mc, checkpoint,
   if not os.path.isdir(path):
     os.mkdir(path)
     print('create path ' + path)
-  X_ph = tf.placeholder(tf.float32, shape=(batch_size, dimX), name='x_ph')
+  X_ph = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, dimX), name='x_ph')
 
   # now start fitting
   N_task = len(labels)

@@ -22,12 +22,12 @@ def IS_estimate(x, enc, dec, ll, K = 100, sample_W = True, mu_pz = 0.0, log_sig_
     if ll == 'l1':
         logp = log_l1_prob(x_rep, mu_x)
     bound = tf.reshape(logp - kl_z, [K, N])
-    bound_max = tf.reduce_max(bound, 0)
+    bound_max = tf.reduce_max(input_tensor=bound, axis=0)
     bound -= bound_max
-    log_norm = tf.log(tf.clip_by_value(tf.reduce_mean(tf.exp(bound), 0), 1e-9, np.inf))
+    log_norm = tf.math.log(tf.clip_by_value(tf.reduce_mean(input_tensor=tf.exp(bound), axis=0), 1e-9, np.inf))
     test_ll = log_norm + bound_max
-    test_ll_mean = tf.reduce_mean(test_ll)
-    test_ll_var = tf.reduce_mean((test_ll - test_ll_mean)**2)
+    test_ll_mean = tf.reduce_mean(input_tensor=test_ll)
+    test_ll_var = tf.reduce_mean(input_tensor=(test_ll - test_ll_mean)**2)
     
     return test_ll_mean, test_ll_var
     

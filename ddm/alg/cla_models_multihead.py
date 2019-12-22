@@ -3,14 +3,14 @@ import numpy as np
 from copy import deepcopy
 
 np.random.seed(0)
-tf.set_random_seed(0)
+tf.compat.v1.set_random_seed(0)
 
 # variable initialization functions
 def weight_variable(shape, init_weights=None):
     if init_weights is not None:
         initial = tf.constant(init_weights)
     else:
-        initial = tf.truncated_normal(shape, stddev=0.1)
+        initial = tf.random.truncated_normal(shape, stddev=0.1)
     return tf.Variable(initial)
 
 def bias_variable(shape):
@@ -44,19 +44,19 @@ def _create_weights_mf(in_dim, hidden_size, out_dim, init_weights=None, init_var
 class Cla_NN(object):
     def __init__(self, input_size, hidden_size, output_size, training_size):
         # input and output placeholders
-        self.x = tf.placeholder(tf.float32, [None, input_size])
-        self.y = tf.placeholder(tf.float32, [None, output_size])
-        self.task_idx = tf.placeholder(tf.int32)
+        self.x = tf.compat.v1.placeholder(tf.float32, [None, input_size])
+        self.y = tf.compat.v1.placeholder(tf.float32, [None, output_size])
+        self.task_idx = tf.compat.v1.placeholder(tf.int32)
         
     def assign_optimizer(self, learning_rate=0.001):
-        self.train_step = tf.train.AdamOptimizer(learning_rate).minimize(self.cost)
+        self.train_step = tf.compat.v1.train.AdamOptimizer(learning_rate).minimize(self.cost)
 
     def assign_session(self):
         # Initializing the variables
-        init = tf.global_variables_initializer()
+        init = tf.compat.v1.global_variables_initializer()
 
         # launch a session
-        self.sess = tf.Session()
+        self.sess = tf.compat.v1.Session()
         self.sess.run(init)
 
     def train(self, x_train, y_train, task_idx, no_epochs=1000, batch_size=100, display_epoch=5):
@@ -138,7 +138,7 @@ class Vanilla_NN(Cla_NN):
 
     def _logpred(self, inputs, targets, task_idx):
         pred = self._prediction(inputs, task_idx)
-        log_lik = - tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=targets))
+        log_lik = - tf.reduce_mean(input_tensor=tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=tf.stop_gradient(targets)))
         return log_lik
 
     def create_weights(self, in_dim, hidden_size, out_dim, prev_weights):
@@ -155,8 +155,8 @@ class Vanilla_NN(Cla_NN):
             din = hidden_size[i]
             dout = hidden_size[i+1]
             if prev_weights is None:
-                Wi_val = tf.truncated_normal([din, dout], stddev=0.1)
-                bi_val = tf.truncated_normal([dout], stddev=0.1)
+                Wi_val = tf.random.truncated_normal([din, dout], stddev=0.1)
+                bi_val = tf.random.truncated_normal([dout], stddev=0.1)
             else:
                 Wi_val = tf.constant(prev_weights[0][i])
                 bi_val = tf.constant(prev_weights[1][i])
@@ -179,8 +179,8 @@ class Vanilla_NN(Cla_NN):
 
         din = hidden_size[-2]
         dout = hidden_size[-1]
-        Wi_val = tf.truncated_normal([din, dout], stddev=0.1)
-        bi_val = tf.truncated_normal([dout], stddev=0.1)
+        Wi_val = tf.random.truncated_normal([din, dout], stddev=0.1)
+        bi_val = tf.random.truncated_normal([dout], stddev=0.1)
         Wi = tf.Variable(Wi_val)
         bi = tf.Variable(bi_val)
         W_last.append(Wi)
@@ -210,7 +210,7 @@ class MFVI_NN(Cla_NN):
         self.no_train_samples = no_train_samples
         self.no_pred_samples = no_pred_samples
         self.pred = self._prediction(self.x, self.task_idx, self.no_pred_samples)
-        self.cost = tf.div(self._KL_term(), training_size) - self._logpred(self.x, self.y, self.task_idx)
+        self.cost = tf.compat.v1.div(self._KL_term(), training_size) - self._logpred(self.x, self.y, self.task_idx)
         
         self.assign_optimizer(learning_rate)
         self.assign_session()
@@ -225,8 +225,8 @@ class MFVI_NN(Cla_NN):
         for i in range(self.no_layers-1):
             din = self.size[i]
             dout = self.size[i+1]
-            eps_w = tf.random_normal((K, din, dout), 0, 1, dtype=tf.float32)
-            eps_b = tf.random_normal((K, 1, dout), 0, 1, dtype=tf.float32)
+            eps_w = tf.random.normal((K, din, dout), 0, 1, dtype=tf.float32)
+            eps_b = tf.random.normal((K, 1, dout), 0, 1, dtype=tf.float32)
             
             weights = tf.add(tf.multiply(eps_w, tf.exp(0.5*self.W_v[i])), self.W_m[i])
             biases = tf.add(tf.multiply(eps_b, tf.exp(0.5*self.b_v[i])), self.b_m[i])
@@ -234,8 +234,8 @@ class MFVI_NN(Cla_NN):
             act = tf.nn.relu(pre)
         din = self.size[-2]
         dout = self.size[-1]
-        eps_w = tf.random_normal((K, din, dout), 0, 1, dtype=tf.float32)
-        eps_b = tf.random_normal((K, 1, dout), 0, 1, dtype=tf.float32)
+        eps_w = tf.random.normal((K, din, dout), 0, 1, dtype=tf.float32)
+        eps_b = tf.random.normal((K, 1, dout), 0, 1, dtype=tf.float32)
 
         Wtask_m = tf.gather(self.W_last_m, task_idx)
         Wtask_v = tf.gather(self.W_last_v, task_idx)
@@ -245,14 +245,14 @@ class MFVI_NN(Cla_NN):
         biases = tf.add(tf.multiply(eps_b, tf.exp(0.5*btask_v)), btask_m)
         act = tf.expand_dims(act, 3)
         weights = tf.expand_dims(weights, 1)
-        pre = tf.add(tf.reduce_sum(act * weights, 2), biases)
+        pre = tf.add(tf.reduce_sum(input_tensor=act * weights, axis=2), biases)
 
         return pre
 
     def _logpred(self, inputs, targets, task_idx):
         pred = self._prediction(inputs, task_idx, self.no_train_samples)
         targets = tf.tile(tf.expand_dims(targets, 0), [self.no_train_samples, 1, 1])
-        log_lik = - tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=targets))
+        log_lik = - tf.reduce_mean(input_tensor=tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=tf.stop_gradient(targets)))
         return log_lik
 
     def _KL_term(self):
@@ -263,15 +263,15 @@ class MFVI_NN(Cla_NN):
             m, v = self.W_m[i], self.W_v[i]
             m0, v0 = self.prior_W_m[i], self.prior_W_v[i]
             const_term = -0.5 * dout * din
-            log_std_diff = 0.5 * tf.reduce_sum(np.log(v0) - v)
-            mu_diff_term = 0.5 * tf.reduce_sum((tf.exp(v) + (m0 - m)**2) / v0)
+            log_std_diff = 0.5 * tf.reduce_sum(input_tensor=np.log(v0) - v)
+            mu_diff_term = 0.5 * tf.reduce_sum(input_tensor=(tf.exp(v) + (m0 - m)**2) / v0)
             kl += const_term + log_std_diff + mu_diff_term
 
             m, v = self.b_m[i], self.b_v[i]
             m0, v0 = self.prior_b_m[i], self.prior_b_v[i]
             const_term = -0.5 * dout
-            log_std_diff = 0.5 * tf.reduce_sum(np.log(v0) - v)
-            mu_diff_term = 0.5 * tf.reduce_sum((tf.exp(v) + (m0 - m)**2) / v0)
+            log_std_diff = 0.5 * tf.reduce_sum(input_tensor=np.log(v0) - v)
+            mu_diff_term = 0.5 * tf.reduce_sum(input_tensor=(tf.exp(v) + (m0 - m)**2) / v0)
             kl += const_term + log_std_diff + mu_diff_term
 
         no_tasks = len(self.W_last_m)
@@ -281,15 +281,15 @@ class MFVI_NN(Cla_NN):
             m, v = self.W_last_m[i], self.W_last_v[i]
             m0, v0 = self.prior_W_last_m[i], self.prior_W_last_v[i]
             const_term = -0.5 * dout * din
-            log_std_diff = 0.5 * tf.reduce_sum(np.log(v0) - v)
-            mu_diff_term = 0.5 * tf.reduce_sum((tf.exp(v) + (m0 - m)**2) / v0)
+            log_std_diff = 0.5 * tf.reduce_sum(input_tensor=np.log(v0) - v)
+            mu_diff_term = 0.5 * tf.reduce_sum(input_tensor=(tf.exp(v) + (m0 - m)**2) / v0)
             kl += const_term + log_std_diff + mu_diff_term
 
             m, v = self.b_last_m[i], self.b_last_v[i]
             m0, v0 = self.prior_b_last_m[i], self.prior_b_last_v[i]
             const_term = -0.5 * dout
-            log_std_diff = 0.5 * tf.reduce_sum(np.log(v0) - v)
-            mu_diff_term = 0.5 * tf.reduce_sum((tf.exp(v) + (m0 - m)**2) / v0)
+            log_std_diff = 0.5 * tf.reduce_sum(input_tensor=np.log(v0) - v)
+            mu_diff_term = 0.5 * tf.reduce_sum(input_tensor=(tf.exp(v) + (m0 - m)**2) / v0)
             kl += const_term + log_std_diff + mu_diff_term
         return kl
 
@@ -311,8 +311,8 @@ class MFVI_NN(Cla_NN):
             din = hidden_size[i]
             dout = hidden_size[i+1]
             if prev_weights is None:
-                Wi_m_val = tf.truncated_normal([din, dout], stddev=0.1)
-                bi_m_val = tf.truncated_normal([dout], stddev=0.1)
+                Wi_m_val = tf.random.truncated_normal([din, dout], stddev=0.1)
+                bi_m_val = tf.random.truncated_normal([dout], stddev=0.1)
                 Wi_v_val = tf.constant(-6.0, shape=[din, dout])
                 bi_v_val = tf.constant(-6.0, shape=[dout])
             else:
@@ -365,8 +365,8 @@ class MFVI_NN(Cla_NN):
             Wi_m_val = prev_weights[2][0]
             bi_m_val = prev_weights[3][0]
         else:
-            Wi_m_val = tf.truncated_normal([din, dout], stddev=0.1)
-            bi_m_val = tf.truncated_normal([dout], stddev=0.1)
+            Wi_m_val = tf.random.truncated_normal([din, dout], stddev=0.1)
+            bi_m_val = tf.random.truncated_normal([dout], stddev=0.1)
         Wi_v_val = tf.constant(-6.0, shape=[din, dout])
         bi_v_val = tf.constant(-6.0, shape=[dout])
 

@@ -83,9 +83,9 @@ permuted_num_tasks = 10
 
 
 # No coreset
-tf.reset_default_graph()
+tf.compat.v1.reset_default_graph()
 random_seed = 1
-tf.set_random_seed(random_seed+1)
+tf.compat.v1.set_random_seed(random_seed+1)
 np.random.seed(random_seed)
 
 path = 'model_storage/permuted/'    # Path where to store files
@@ -99,9 +99,9 @@ np.savez(path + 'test_acc.npz', acc=vcl_result)
 
 
 # Random coreset
-tf.reset_default_graph()
+tf.compat.v1.reset_default_graph()
 random_seed = 1
-tf.set_random_seed(random_seed+1)
+tf.compat.v1.set_random_seed(random_seed+1)
 np.random.seed(random_seed)
 
 path = 'model_storage/permuted_coreset/'    # Path where to store files

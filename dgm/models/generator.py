@@ -64,7 +64,7 @@ def generator(head_net, shared_net):
 def construct_gen(gen, dimZ, sampling=True):
   def gen_data(N):
     # start from sample z_0, generate data
-    z = tf.random_normal(shape=(N, dimZ))
+    z = tf.random.normal(shape=(N, dimZ))
     return gen(z)
 
   return gen_data

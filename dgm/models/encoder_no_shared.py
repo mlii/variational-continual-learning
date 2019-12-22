@@ -27,7 +27,7 @@ def encoder(dimX, dimH, dimZ, n_layers, name):
     return apply
 
 def sample_gaussian(mu, log_sig):
-    return mu + tf.exp(log_sig) * tf.random_normal(mu.get_shape())
+    return mu + tf.exp(log_sig) * tf.random.normal(mu.get_shape())
 
 def recon(x, gen, enc, sampling = False):
  

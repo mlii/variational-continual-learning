@@ -6,15 +6,15 @@ import tensorflow as tf
 
 
 def KL_generated_images(dec, cla, N, dimZ, task, sample_W=True):
-  z = tf.random_normal(shape=(N, dimZ))
+  z = tf.random.normal(shape=(N, dimZ))
   x_gen = dec(z, sampling=sample_W)
   y_gen = tf.clip_by_value(cla(x_gen), 1e-9, 1.0)
   y_true = np.zeros([N, 10]);
   y_true[:, task] = 1
   y_true = tf.constant(np.asarray(y_true, dtype='f'))
-  kl = -tf.reduce_sum(y_true * tf.log(y_gen), 1)
-  kl_mean = tf.reduce_mean(kl)
-  kl_var = tf.reduce_mean((kl - kl_mean) ** 2)
+  kl = -tf.reduce_sum(input_tensor=y_true * tf.math.log(y_gen), axis=1)
+  kl_mean = tf.reduce_mean(input_tensor=kl)
+  kl_var = tf.reduce_mean(input_tensor=(kl - kl_mean) ** 2)
   return kl_mean, kl_var
 
 

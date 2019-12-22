@@ -4,7 +4,7 @@ from helper_functions import *
 
 
 def get_q_theta_params():
-  t_vars = tf.trainable_variables()
+  t_vars = tf.compat.v1.trainable_variables()
   var_list = [var for var in t_vars if 'gen_shared' in var.name]
   param_dict = {}
   for var in var_list:
@@ -13,7 +13,7 @@ def get_q_theta_params():
 
 
 def get_headnet_params(task):
-  t_vars = tf.trainable_variables()
+  t_vars = tf.compat.v1.trainable_variables()
   var_list = [var for var in t_vars if 'gen_%d_head' % task in var.name]
   param_dict = {}
   for var in var_list:
@@ -44,7 +44,7 @@ def update_q_sigma(sess):
   for name in q_params.keys():
     if 'log_sig' in name:
       shape = q_params[name].get_shape().as_list()
-      sess.run(tf.assign(q_params[name], np.ones(shape) * -6))
+      sess.run(tf.compat.v1.assign(q_params[name], np.ones(shape) * -6))
   print('reset the log sigma of q to -5')
 
 
@@ -62,7 +62,7 @@ def KL_param(shared_prior_params, task, regularise_headnet=False):
       log_sig_q = shared_q_params['gen_shared_l%d_log_sig_' % l + suffix + ':0']
       mu_p = shared_prior_params['gen_shared_l%d_mu_' % l + suffix + ':0']
       log_sig_p = shared_prior_params['gen_shared_l%d_log_sig_' % l + suffix + ':0']
-      kl_total += tf.reduce_sum(KL(mu_q, log_sig_q, mu_p, log_sig_p))
+      kl_total += tf.reduce_sum(input_tensor=KL(mu_q, log_sig_q, mu_p, log_sig_p))
 
   # for the head network
   if regularise_headnet:
@@ -72,7 +72,7 @@ def KL_param(shared_prior_params, task, regularise_headnet=False):
       for suffix in ['W', 'b']:
         mu_q = shared_q_params['gen_head%d_l%d_mu_' % (task, l) + suffix + ':0']
         log_sig_q = shared_q_params['gen_head%d_l%d_log_sig_' % (task, l) + suffix + ':0']
-        kl_total += tf.reduce_sum(KL(mu_q, log_sig_q, 0.0, 0.0))
+        kl_total += tf.reduce_sum(input_tensor=KL(mu_q, log_sig_q, 0.0, 0.0))
 
   return kl_total
 
@@ -99,17 +99,17 @@ def lowerbound(x, enc, dec, ll, K=1, mu_pz=0.0, log_sig_pz=0.0):
 
 def construct_optimizer(X_ph, enc, dec, ll, N_data, batch_size_ph, shared_prior_params, task, K):
   # loss function
-  bound = tf.reduce_mean(lowerbound(X_ph, enc, dec, ll, K))
+  bound = tf.reduce_mean(input_tensor=lowerbound(X_ph, enc, dec, ll, K))
   kl_theta = KL_param(shared_prior_params, task)
   loss_total = -bound + kl_theta / N_data
   batch_size = X_ph.get_shape().as_list()[0]
 
   # now construct optimizers
-  lr_ph = tf.placeholder(tf.float32, shape=())
-  t_vars = tf.trainable_variables()
+  lr_ph = tf.compat.v1.placeholder(tf.float32, shape=())
+  t_vars = tf.compat.v1.trainable_variables()
   var_list = [var for var in t_vars if 'gen' in var.name]
   N_param = np.sum([np.prod(var.get_shape().as_list()) for var in var_list])
-  opt = tf.train.AdamOptimizer(learning_rate=lr_ph).minimize(loss_total)
+  opt = tf.compat.v1.train.AdamOptimizer(learning_rate=lr_ph).minimize(loss_total)
 
   ops = [opt, bound, kl_theta]
 

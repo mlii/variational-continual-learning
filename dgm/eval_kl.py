@@ -33,13 +33,13 @@ def main(data_name, method, dimZ, dimH, n_channel, batch_size, K_mc, checkpoint,
 
   # then define model
   n_layers_shared = 2
-  batch_size_ph = tf.placeholder(tf.int32, shape=(), name='batch_size')
+  batch_size_ph = tf.compat.v1.placeholder(tf.int32, shape=(), name='batch_size')
   dec_shared = generator_shared(dimX, dimH, n_layers_shared, 'sigmoid', 'gen')
 
   # initialise sessions
-  config = tf.ConfigProto()
+  config = tf.compat.v1.ConfigProto()
   config.gpu_options.allow_growth = True
-  sess = tf.Session(config=config)
+  sess = tf.compat.v1.Session(config=config)
   keras.backend.set_session(sess)
   string = method
   if method in ['ewc', 'laplace']:
@@ -54,13 +54,13 @@ def main(data_name, method, dimZ, dimH, n_channel, batch_size, K_mc, checkpoint,
   # load the classifier
   cla = load_model(data_name)
   # print test error
-  X_ph = tf.placeholder(tf.float32, shape=(batch_size, 28 ** 2))
-  y_ph = tf.placeholder(tf.float32, shape=(batch_size, 10))
+  X_ph = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, 28 ** 2))
+  y_ph = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, 10))
   y_pred = cla(X_ph)
-  correct_pred = tf.equal(tf.argmax(y_ph, 1), tf.argmax(y_pred, 1))
-  acc = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+  correct_pred = tf.equal(tf.argmax(input=y_ph, axis=1), tf.argmax(input=y_pred, axis=1))
+  acc = tf.reduce_mean(input_tensor=tf.cast(correct_pred, tf.float32))
   y_pred_ = tf.clip_by_value(y_pred, 1e-9, 1.0)
-  kl = tf.reduce_mean(-tf.reduce_sum(y_ph * tf.log(y_pred_), 1))
+  kl = tf.reduce_mean(input_tensor=-tf.reduce_sum(input_tensor=y_ph * tf.math.log(y_pred_), axis=1))
 
   for task in range(1):
     if data_name == 'mnist':

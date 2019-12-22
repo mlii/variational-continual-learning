@@ -23,13 +23,13 @@ def load_data(data_name, path, labels = None, conv = False, seed = 0):
     return data_train, data_test, labels_train, labels_test
 
 def init_variables(sess, old_var_list = set([])):
-    all_var_list = set(tf.all_variables())
-    init = tf.initialize_variables(var_list = all_var_list - old_var_list)
+    all_var_list = set(tf.compat.v1.all_variables())
+    init = tf.compat.v1.initialize_variables(var_list = all_var_list - old_var_list)
     sess.run(init)
     return all_var_list
     
 def save_params(sess, filename, checkpoint):
-    params = tf.trainable_variables()
+    params = tf.compat.v1.trainable_variables()
     param_dict = dict()
     for v in params:
         param_dict[v.name] = sess.run(v)
@@ -40,7 +40,7 @@ def save_params(sess, filename, checkpoint):
     f.close()
 
 def load_params(sess, filename, checkpoint, init_all = True):
-    params = tf.trainable_variables()
+    params = tf.compat.v1.trainable_variables()
     filename = filename + '_' + str(checkpoint)
     f = open(filename + '.pkl', 'r')
     param_dict = pickle.load(f)
@@ -49,11 +49,11 @@ def load_params(sess, filename, checkpoint, init_all = True):
     ops = []
     for v in params:
         if v.name in param_dict.keys():
-            ops.append(tf.assign(v, param_dict[v.name]))
+            ops.append(tf.compat.v1.assign(v, param_dict[v.name]))
     sess.run(ops)
     # init uninitialised params
     if init_all:
-        all_var = tf.all_variables()
+        all_var = tf.compat.v1.all_variables()
         var = [v for v in all_var if v not in params]
-        sess.run(tf.initialize_variables(var))
+        sess.run(tf.compat.v1.initialize_variables(var))
     print('loaded parameters from ' + filename + '.pkl')

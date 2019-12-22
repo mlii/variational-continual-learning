@@ -8,7 +8,7 @@ def compute_fisher(X_ph, batch_size_ph, bound, N_data):
   Copy-paste from Cuong's EWC implementation
   """
   # initialize Fisher information for most recent task
-  t_vars = tf.trainable_variables()
+  t_vars = tf.compat.v1.trainable_variables()
   var_list = [var for var in t_vars if 'gen_shared' in var.name]
   F_accum = [0.0 for v in range(len(var_list))]
 
@@ -17,7 +17,7 @@ def compute_fisher(X_ph, batch_size_ph, bound, N_data):
   # assume lowerbound is of shape (batch_size)
   batch_size = X_ph.get_shape().as_list()[0]
   for i in range(batch_size):
-    grad_square = tf.gradients(bound[i], var_list)
+    grad_square = tf.gradients(ys=bound[i], xs=var_list)
     for v in range(len(F_accum)):
       F_accum[v] += grad_square[v] ** 2 / batch_size
 
@@ -33,7 +33,7 @@ def compute_fisher(X_ph, batch_size_ph, bound, N_data):
 
 
 def init_fisher_accum():
-  t_vars = tf.trainable_variables()
+  t_vars = tf.compat.v1.trainable_variables()
   var_list = [var for var in t_vars if 'gen_shared' in var.name]
   F_accum = [0.0 for v in range(len(var_list))]
   return F_accum
@@ -46,14 +46,14 @@ def update_laplace_loss(sess, F_accum_old, var_list, fisher, lbd, x):
   F_accum_new = []
   for v in range(len(F_accum)):
     hessian = F_accum[v] + F_accum_old[v]
-    loss += 0.5 * lbd * tf.reduce_sum(hessian * \
+    loss += 0.5 * lbd * tf.reduce_sum(input_tensor=hessian * \
                                       (var_list[v] - old_var_list[v]) ** 2)
     F_accum_new.append(hessian)
   return loss, F_accum_new
 
 
 def extract_old_var(sess):
-  t_vars = tf.trainable_variables()
+  t_vars = tf.compat.v1.trainable_variables()
   var_list = [var for var in t_vars if 'gen_shared' in var.name]
   return sess.run(var_list)
 
@@ -74,16 +74,16 @@ def lowerbound(x, enc, dec, ll, mu_pz=0.0, log_sig_pz=0.0):
 
 def construct_optimizer(X_ph, batch_size_ph, bound, N_data, laplace_loss):
   # loss function
-  bound = tf.reduce_mean(bound)
+  bound = tf.reduce_mean(input_tensor=bound)
   loss_total = -bound + laplace_loss / N_data
   batch_size = X_ph.get_shape().as_list()[0]
 
   # now construct optimizers
-  lr_ph = tf.placeholder(tf.float32, shape=())
-  t_vars = tf.trainable_variables()
+  lr_ph = tf.compat.v1.placeholder(tf.float32, shape=())
+  t_vars = tf.compat.v1.trainable_variables()
   var_list = [var for var in t_vars if 'gen' in var.name]
   var_list = var_list + [var for var in t_vars if 'enc' in var.name]
-  opt = tf.train.AdamOptimizer(learning_rate=lr_ph).minimize(loss_total, \
+  opt = tf.compat.v1.train.AdamOptimizer(learning_rate=lr_ph).minimize(loss_total, \
                                                              var_list=var_list)
 
   ops = [opt, bound]

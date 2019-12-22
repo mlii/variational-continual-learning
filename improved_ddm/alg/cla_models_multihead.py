@@ -3,7 +3,7 @@ import numpy as np
 from copy import deepcopy
 
 np.random.seed(0)
-tf.set_random_seed(0)
+tf.compat.v1.set_random_seed(0)
 
 # Create network weights
 def _create_weights(size, use_float64=False):
@@ -59,14 +59,14 @@ class MFVI_NN(object):
 
         # Input and output placeholders
         if use_float64 == True:
-            self.x = tf.placeholder(tf.float64, [None, lower_size[0]])
-            self.ys = [tf.placeholder(tf.float64, [None, upper_size[-1]]) for upper_size in upper_sizes]
+            self.x = tf.compat.v1.placeholder(tf.float64, [None, lower_size[0]])
+            self.ys = [tf.compat.v1.placeholder(tf.float64, [None, upper_size[-1]]) for upper_size in upper_sizes]
         else:
-            self.x = tf.placeholder(tf.float32, [None, lower_size[0]])
-            self.ys = [tf.placeholder(tf.float32, [None, upper_size[-1]]) for upper_size in upper_sizes]
+            self.x = tf.compat.v1.placeholder(tf.float32, [None, lower_size[0]])
+            self.ys = [tf.compat.v1.placeholder(tf.float32, [None, upper_size[-1]]) for upper_size in upper_sizes]
 
         # Number of training points
-        self.training_size = tf.placeholder(tf.int32)
+        self.training_size = tf.compat.v1.placeholder(tf.int32)
 
         # Lower and upper layer of model
         self.lower_net = HalfNet(lower_size, use_float64)
@@ -104,7 +104,7 @@ class MFVI_NN(object):
                 else:
                     kl_upper += kl_upper_interm
             # Overall variational objective function for this task
-            cost = tf.div(kl_lower + kl_upper, N) - log_pred
+            cost = tf.compat.v1.div(kl_lower + kl_upper, N) - log_pred
             costs.append(cost)
 
         return costs, likelihood_costs
@@ -139,7 +139,7 @@ class MFVI_NN(object):
 
         # Calculate mean of cross_entropy for training using variational objective function (and Monte Carlo sampling)
         log_lik = - tf.reduce_mean(
-            tf.nn.softmax_cross_entropy_with_logits_v2(logits=pred, labels=targets))
+            input_tensor=tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=targets))
         return log_lik
 
     # Initialise tf session
@@ -151,14 +151,14 @@ class MFVI_NN(object):
             vars_to_optimise.append(self.upper_nets[class_id].m)
             vars_to_optimise.append(self.upper_nets[class_id].v)
 
-        self.train_step = tf.train.AdamOptimizer(learning_rate).minimize(self.training_loss[task_idx],
+        self.train_step = tf.compat.v1.train.AdamOptimizer(learning_rate).minimize(self.training_loss[task_idx],
                                                                          var_list=vars_to_optimise)
 
         # Initializing the variables
-        init = tf.global_variables_initializer()
+        init = tf.compat.v1.global_variables_initializer()
 
         # launch a session
-        self.sess = tf.Session()
+        self.sess = tf.compat.v1.Session()
         self.sess.run(init)
 
     # Close tf session
@@ -290,22 +290,22 @@ class MFVI_NN(object):
 
         # Upper weights: go over each class
         for class_id in class_idx:
-            assign_m_op = tf.assign(self.upper_nets[class_id].m, self.upper_nets[class_id].new_m)
+            assign_m_op = tf.compat.v1.assign(self.upper_nets[class_id].m, self.upper_nets[class_id].new_m)
             self.sess.run(
                 assign_m_op, feed_dict={
                     self.upper_nets[class_id].new_m: upper_weights[class_id][0]})
 
-            assign_v_op = tf.assign(self.upper_nets[class_id].v, self.upper_nets[class_id].new_v)
+            assign_v_op = tf.compat.v1.assign(self.upper_nets[class_id].v, self.upper_nets[class_id].new_v)
             self.sess.run(
                 assign_v_op, feed_dict={
                     self.upper_nets[class_id].new_v: upper_weights[class_id][1]})
 
     # Reset tf optimiser
     def reset_optimiser(self):
-        optimiser_scope = tf.get_collection(
-            tf.GraphKeys.GLOBAL_VARIABLES,
+        optimiser_scope = tf.compat.v1.get_collection(
+            tf.compat.v1.GraphKeys.GLOBAL_VARIABLES,
             "scope/prefix/for/optimizer")
-        self.sess.run(tf.initialize_variables(optimiser_scope))
+        self.sess.run(tf.compat.v1.initialize_variables(optimiser_scope))
 
 # Either the lower network, or the upper network (top-most layer of model)
 class HalfNet():
@@ -324,27 +324,27 @@ class HalfNet():
 
         # Create placeholders for loading weights into HalfNet
         if use_float64:
-            self.new_m = tf.placeholder(tf.float64, [self.no_weights])
-            self.new_v = tf.placeholder(tf.float64, [self.no_weights])
+            self.new_m = tf.compat.v1.placeholder(tf.float64, [self.no_weights])
+            self.new_v = tf.compat.v1.placeholder(tf.float64, [self.no_weights])
         else:
-            self.new_m = tf.placeholder(tf.float32, [self.no_weights])
-            self.new_v = tf.placeholder(tf.float32, [self.no_weights])
+            self.new_m = tf.compat.v1.placeholder(tf.float32, [self.no_weights])
+            self.new_v = tf.compat.v1.placeholder(tf.float32, [self.no_weights])
 
-        self.assign_m_op = tf.assign(self.m, self.new_m)
-        self.assign_v_op = tf.assign(self.v, self.new_v)
+        self.assign_m_op = tf.compat.v1.assign(self.m, self.new_m)
+        self.assign_v_op = tf.compat.v1.assign(self.v, self.new_v)
 
         # Prior as placeholder, as these can change
         if use_float64:
-            self.m0 = tf.placeholder(tf.float64, [self.no_weights])
-            self.v0 = tf.placeholder(tf.float64, [self.no_weights])
+            self.m0 = tf.compat.v1.placeholder(tf.float64, [self.no_weights])
+            self.v0 = tf.compat.v1.placeholder(tf.float64, [self.no_weights])
         else:
-            self.m0 = tf.placeholder(tf.float32, [self.no_weights])
-            self.v0 = tf.placeholder(tf.float32, [self.no_weights])
+            self.m0 = tf.compat.v1.placeholder(tf.float32, [self.no_weights])
+            self.v0 = tf.compat.v1.placeholder(tf.float32, [self.no_weights])
 
     # This samples a layer at a time, using the local reparameterisation trick
     def prediction(self, inputs, no_samples):
         K = no_samples              # Number of (random) samples per datapoint
-        N = tf.shape(inputs)[1]     # Number of datapoints in batch
+        N = tf.shape(input=inputs)[1]     # Number of datapoints in batch
         Dout = self.size[-1]
         mw, vw, mb, vb = self.mw, self.vw, self.mb, self.vb
         act = inputs
@@ -359,9 +359,9 @@ class HalfNet():
 
             # Sample pre-activation latents
             if self.use_float64:
-                eps = tf.random_normal([K, 1, self.size[i + 1]], 0.0, 1.0, dtype=tf.float64)
+                eps = tf.random.normal([K, 1, self.size[i + 1]], 0.0, 1.0, dtype=tf.float64)
             else:
-                eps = tf.random_normal([K, 1, self.size[i + 1]], 0.0, 1.0, dtype=tf.float32)
+                eps = tf.random.normal([K, 1, self.size[i + 1]], 0.0, 1.0, dtype=tf.float32)
             pre = eps * tf.sqrt(1e-9 + v_pre) + m_pre
 
             act = self.act_func(pre)
@@ -373,7 +373,7 @@ class HalfNet():
     # Calculate KL term
     def KL_term(self):
         const_term = -0.5 * self.no_weights
-        log_std_diff = 0.5 * tf.reduce_sum(self.v0 - self.v)
-        mu_diff_term = 0.5 * tf.reduce_sum((tf.exp(self.v) + (self.m0 - self.m) ** 2) / tf.exp(self.v0))
+        log_std_diff = 0.5 * tf.reduce_sum(input_tensor=self.v0 - self.v)
+        mu_diff_term = 0.5 * tf.reduce_sum(input_tensor=(tf.exp(self.v) + (self.m0 - self.m) ** 2) / tf.exp(self.v0))
         kl = const_term + log_std_diff + mu_diff_term
         return kl

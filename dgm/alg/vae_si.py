@@ -28,28 +28,28 @@ def lowerbound(x, enc, dec, ll, mu_pz=0.0, log_sig_pz=0.0):
 
 
 def construct_optimizer(X_ph, batch_size_ph, bound, N_data, si_reg, old_params, lbd=1.0):
-  t_vars = tf.trainable_variables()
+  t_vars = tf.compat.v1.trainable_variables()
   var_list = [var for var in t_vars if 'gen' in var.name]
   var_list = var_list + [var for var in t_vars if 'enc' in var.name]
   shared_var_list = [var for var in t_vars if 'gen_shared' in var.name]
 
   # loss function
-  bound = tf.reduce_mean(bound)
+  bound = tf.reduce_mean(input_tensor=bound)
   loss_task = -bound  # * N_data
   si_loss = 0.0
   if old_params is not None:
     for i in range(len(si_reg)):
-      si_loss += 0.5 * lbd * tf.reduce_sum(si_reg[i] * (shared_var_list[i] - old_params[i]) ** 2)
+      si_loss += 0.5 * lbd * tf.reduce_sum(input_tensor=si_reg[i] * (shared_var_list[i] - old_params[i]) ** 2)
   loss_total = (loss_task + si_loss)  # / N_data
   batch_size = X_ph.get_shape().as_list()[0]
 
   # now construct optimizers
-  lr_ph = tf.placeholder(tf.float32, shape=())
-  opt = tf.train.AdamOptimizer(learning_rate=lr_ph).minimize(loss_total, \
+  lr_ph = tf.compat.v1.placeholder(tf.float32, shape=())
+  opt = tf.compat.v1.train.AdamOptimizer(learning_rate=lr_ph).minimize(loss_total, \
                                                              var_list=var_list)
 
   # check eq. (3) in the SI paper
-  grad_shared = tf.gradients(-loss_task, shared_var_list)
+  grad_shared = tf.gradients(ys=-loss_task, xs=shared_var_list)
   ops = [opt, bound, grad_shared]
 
   def train(sess, X, lr, old_params, w_params):
