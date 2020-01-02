@@ -24,7 +24,7 @@ data_path = None # TODO
 def main(data_name, method, dimZ, dimH, n_channel, batch_size, K_mc, checkpoint, lbd):
   # set up dataset specific stuff
   from config import config
-  labels, n_iter, dimX, shape_high, ll = config(data_name, n_channel)
+  labels, n_iter, dimX, shape_high, ll = config(data_name, n_channel, method)
   if data_name == 'mnist':
     from mnist import load_mnist
   if data_name == 'notmnist':

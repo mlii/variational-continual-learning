@@ -12,7 +12,7 @@ def generator_head(dimZ, dimH, n_layers, name):
   layers = []
   N_layers = len(fc_layer_sizes) - 1
   for i in range(N_layers):
-    d_in = fc_layer_sizes[i];
+    d_in = fc_layer_sizes[i]
     d_out = fc_layer_sizes[i + 1]
     name_layer = name + '_head_l%d' % i
     layers.append(mlp_layer(d_in, d_out, 'relu', name_layer))
@@ -33,7 +33,7 @@ def generator_shared(dimX, dimH, n_layers, last_activation, name):
   layers = []
   N_layers = len(fc_layer_sizes) - 1
   for i in range(N_layers):
-    d_in = fc_layer_sizes[i];
+    d_in = fc_layer_sizes[i]
     d_out = fc_layer_sizes[i + 1]
     if i < N_layers - 1:
       activation = 'relu'
